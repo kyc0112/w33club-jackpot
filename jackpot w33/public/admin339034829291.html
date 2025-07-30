@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADMIN</title>
+    <style>
+        body { background:#222; color:#fff; font-family:sans-serif; display:flex; justify-content:center; align-items:flex-start; padding:30px; }
+        .container { max-width:600px; width:100%; background:#333; padding:20px; border-radius:10px; }
+        h1 { text-align:center; margin-bottom:20px; }
+        .controls { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px; }
+        input,select,button { padding:10px; font-size:1rem; }
+        .code-list { background:#444; padding:10px; border-radius:5px; max-height:300px; overflow-y:auto; }
+        .code-item { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #666; }
+        .code-item:last-child { border-bottom:none; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>CODE CENTRE</h1>
+    <div class="controls">
+        <select id="jackpotType">
+            <option value="mini">Mini Jackpot</option>
+            <option value="minor">Minor Jackpot</option>
+            <option value="mega">Mega Jackpot</option>
+            <option value="grand">Grand Jackpot</option>
+        </select>
+        <input type="text" id="newCode" placeholder="New Code">
+        <button id="addCode">ADD CODE</button>
+        <button id="clearCodes">CLEAR CODE</button>
+    </div>
+    <div class="code-list" id="codeList"></div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+    let db=JSON.parse(localStorage.getItem('jackpotCodes')) || {
+        mini:['MINI-2024-001'],minor:['MINOR-2024-001'],mega:['MEGA-2024-001'],grand:['GRAND-2024-001']
+    };
+    const jackpotType=document.getElementById('jackpotType');
+    const newCode=document.getElementById('newCode');
+    const codeList=document.getElementById('codeList');
+
+    function saveDB(){ localStorage.setItem('jackpotCodes',JSON.stringify(db)); renderList(); }
+    function renderList(){
+        codeList.innerHTML='';
+        for(const type in db){
+            if(db[type].length>0){
+                const header=document.createElement('div'); 
+                header.textContent=`${type.toUpperCase()} Jackpot:`; 
+                header.style.fontWeight='bold'; 
+                codeList.appendChild(header);
+                db[type].forEach(c=>{
+                    const item=document.createElement('div'); item.className='code-item';
+                    item.innerHTML=`<span>${c}</span><span>${type}</span>`;
+                    codeList.appendChild(item);
+                });
+            }
+        }
+    }
+    document.getElementById('addCode').addEventListener('click',()=>{
+        const type=jackpotType.value; const code=newCode.value.trim().toUpperCase();
+        if(!code) return alert("ENTER CODE");
+        if(Object.values(db).some(list=>list.includes(code))) return alert("CODE EXISTED");
+        db[type].push(code); saveDB(); newCode.value='';
+    });
+    document.getElementById('clearCodes').addEventListener('click',()=>{
+        if(confirm("Sure to clear all codes?")){ db={mini:[],minor:[],mega:[],grand:[]}; saveDB(); }
+    });
+    renderList();
+});
+</script>
+</body>
+</html>
